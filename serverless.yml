@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
-  region:  ${opt:region, 'eu-north-1'}
+  region:  ${opt:region, 'us-east-1'}
   memorySize: ${opt:memory, 512}
   timeout: 10
   logRetentionInDays: 7
@@ -30,8 +30,9 @@ package:
 
 custom:
   config:
-    authToken: something # EDIT THIS TO YOUR VALUE - see for example https://www.uuidgenerator.net for getting a UUID v4
-    accountNumber: 123412341234
+    authToken: 062df296-b152-11ed-afa1-0242ac120002
+      #something # EDIT THIS TO YOUR VALUE - see for example https://www.uuidgenerator.net for getting a UUID v4
+    accountNumber: 535706019673
     maxDateRange: 30
     tableName: dorametrix
   aws:

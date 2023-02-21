@@ -26,7 +26,7 @@ export async function authorizeUseCase(event: EventInput) {
     // @ts-ignore
     if (event.httpMethod === 'OPTIONS') return handleCors();
 
-    const userToken = event?.headers['Authorization'] || '';
+    const userToken = event?.headers['Authorization'] || event?.queryStringParameters["authorization"] || '';
     if (!userToken) throw new MissingAuthorizationHeaderError();
 
     const isValid = userToken === AUTHORIZATION_TOKEN;
