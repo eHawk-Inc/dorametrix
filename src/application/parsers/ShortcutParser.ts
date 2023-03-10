@@ -13,13 +13,13 @@ import {
   MissingShortcutFieldsError,
   UnknownEventTypeError
 } from '../errors/errors';
+import { ExecuteStatementCommand } from '@aws-sdk/client-dynamodb';
 
 /**
  * @description Parser adapted for Shortcut.
  */
 export class ShortcutParser implements Parser {
 
-  restData: any = {}
   /**
    * @description Shortcut only handles Incidents, so this simply returns a hard coded value for it.
    */
@@ -28,27 +28,26 @@ export class ShortcutParser implements Parser {
     logger.info("going into async call");
     
     
-    var asyncComplete = false;
-    (async () => {
-      try {
-        let response = await axios.get("https://api.app.shortcut.com/api/v3/stories/2507", { headers: {"Shortcut-Token" : "64060923-33b7-457f-91ea-4db7893273fa"}});
-        this.setShortcutApiData(response)
-        asyncComplete = true;
-      } catch (e) {
-        logger.info("error in async");
-      } finally {
-        logger.info("async is complete");
-        asyncComplete = true;
-      }
-    })()
+    var restData: any = null;
+    axios.get("https://api.app.shortcut.com/api/v3/stories/2507", { headers: {"Shortcut-Token" : "64060923-33b7-457f-91ea-4db7893273fa"}})
+                        .then((rsp) => {
+                          restData = rsp.data;
+                        }).catch(err => {
+                          logger.error(err)
+                        });
+
+    if ( !restData) {
+      throw new UnknownEventTypeError();
+    }
 
     //this.sleep(6000);
-    logger.info("rest data object: " + this.restData);
-    logger.info("rest data object app url: " + this.restData.app_url);
+    logger.info("rest data object: " + restData);
+    logger.info("rest data object app url: " + restData.app_url);
 
     const payloadInput: PayloadInput = eventTypeInput;
     logger.info("in get event type");
     logger.info(payloadInput);
+    
     const isIncident = this.isIncident(payloadInput);
     if (isIncident) { // incident label added
       return "incident";
@@ -67,19 +66,6 @@ export class ShortcutParser implements Parser {
     while (currentTime + miliseconds >= new Date().getTime()) {
     }
  }
-
-  private dummy() {
-    const logger = MikroLog.start({ metadataConfig: metadataConfig });
-    logger.info("in the set time out");
-  }
-
-  private setShortcutApiData(response: any) {
-    const logger = MikroLog.start({ metadataConfig: metadataConfig });
-    logger.info("in setShortcutApi");
-    logger.info(response.data);
-    logger.info(response.status);
-    this.restData = response.data
-  }
 
   private movedToReadyForDeployment(payloadInput: PayloadInput) {
     const references = payloadInput.body?.['references']
