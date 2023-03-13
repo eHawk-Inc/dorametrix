@@ -7,42 +7,55 @@ import { MikroLog } from 'mikrolog';
 import { metadataConfig } from '../../config/metadata';
 
 import {
-  MissingEventTimeError,
-  MissingEventError,
-  MissingIdError,
-  MissingShortcutFieldsError,
+//  MissingEventTimeError,
+//  MissingEventError,
+//  MissingIdError,
+//  MissingShortcutFieldsError,
   UnknownEventTypeError
 } from '../errors/errors';
-import { ExecuteStatementCommand } from '@aws-sdk/client-dynamodb';
+//import { ExecuteStatementCommand } from '@aws-sdk/client-dynamodb';
 
 /**
  * @description Parser adapted for Shortcut.
  */
 export class ShortcutParser implements Parser {
 
+  storyData: any = null;
+
+  private async getStoryData(story: String) : Promise<any>
+  {
+    const logger = MikroLog.start({ metadataConfig: metadataConfig });
+
+    if(!this.storyData) {
+      return this.storyData;
+    }
+
+    logger.info("fetching story");
+    return await axios.get("https://api.app.shortcut.com/api/v3/stories/" + story, { headers: {"Shortcut-Token" : "64060923-33b7-457f-91ea-4db7893273fa"}})
+                        .then((rsp) => {
+                          logger.info("story call complete");
+                          this.storyData = rsp.data;
+                          return rsp.data;
+                        }).catch(err => {
+                          logger.error(err)
+                        });
+  }
+
+
+
   /**
    * @description Shortcut only handles Incidents, so this simply returns a hard coded value for it.
    */
-  public getEventType(eventTypeInput: EventTypeInput): string {
+  public async getEventType(eventTypeInput: EventTypeInput): Promise<string> {
     const logger = MikroLog.start({ metadataConfig: metadataConfig });
     logger.info("going into async call");
     
     
-    var restData: any = null;
-    axios.get("https://api.app.shortcut.com/api/v3/stories/2507", { headers: {"Shortcut-Token" : "64060923-33b7-457f-91ea-4db7893273fa"}})
-                        .then((rsp) => {
-                          restData = rsp.data;
-                        }).catch(err => {
-                          logger.error(err)
-                        });
-
-    if ( !restData) {
-      throw new UnknownEventTypeError();
-    }
-
+    var storyData = await this.getStoryData("2507");
+    
     //this.sleep(6000);
-    logger.info("rest data object: " + restData);
-    logger.info("rest data object app url: " + restData.app_url);
+    logger.info("rest data object: " + storyData);
+    logger.info("rest data object app url: " + storyData.app_url);
 
     const payloadInput: PayloadInput = eventTypeInput;
     logger.info("in get event type");
@@ -60,12 +73,6 @@ export class ShortcutParser implements Parser {
     throw new UnknownEventTypeError();
   }
 
-  private sleep(miliseconds: number) {
-    var currentTime = new Date().getTime();
- 
-    while (currentTime + miliseconds >= new Date().getTime()) {
-    }
- }
 
   private movedToReadyForDeployment(payloadInput: PayloadInput) {
     const references = payloadInput.body?.['references']
@@ -131,7 +138,7 @@ export class ShortcutParser implements Parser {
     //const hasIncidentLable = await this.hasIncidentLabel(payloadInput);
     const logger = MikroLog.start({ metadataConfig: metadataConfig });
     logger.info("in is incident");
-      
+    logger.info(payloadInput)
       
     return this.isIncidentLabelAdded(payloadInput) ||
        this.isIncidentLabelRemoved(payloadInput) ||
@@ -142,7 +149,8 @@ export class ShortcutParser implements Parser {
     // shortcut api call with ticket number
     // extract labels - if incident lable, return true
     
-    
+    const logger = MikroLog.start({ metadataConfig: metadataConfig });
+    logger.info(payloadInput)
     return false;
   }
 
@@ -153,7 +161,7 @@ export class ShortcutParser implements Parser {
 
   private isIncidentLabelRemoved(payloadInput: PayloadInput) {
      // label added case - incident opened
-     const logger = MikroLog.start({ metadataConfig: metadataConfig });
+     //const logger = MikroLog.start({ metadataConfig: metadataConfig });
      const references = payloadInput.body?.['references']
      if (!references) {
        return false
@@ -236,14 +244,15 @@ export class ShortcutParser implements Parser {
   /**
    * @description Get payload fields from the right places.
    */
-  public getPayload(payloadInput: PayloadInput): EventDto {
+  public async getPayload(payloadInput: PayloadInput): Promise<EventDto> {
     const logger = MikroLog.start({ metadataConfig: metadataConfig });
     logger.info("here 1")
     const body = payloadInput.body || {};
 
     logger.info(body);
 
-    const eventType = this.getEventType(payloadInput)
+    const eventType = await this.getEventType(payloadInput)
+    
     if (eventType === "incident") {
       if (this.isIncidentOpened(payloadInput)){
         return this.handleIncidentOpened(payloadInput);
@@ -258,8 +267,6 @@ export class ShortcutParser implements Parser {
     }
     //throw new MissingEventError()
 
-
-    
     return {
       eventTime: 'UNKNOWN',
       timeCreated: 'UNKNOWN',
@@ -312,9 +319,9 @@ export class ShortcutParser implements Parser {
    * @example `https://bitbucket.org/SOMEORG/SOMEREPO/`
    * @example `https://github.com/SOMEORG/SOMEREPO`
    */
-  public getRepoName(body: Record<string, any>): string {
+  public async getRepoName(body: Record<string, any>): Promise<string> {
    
- 
+    console.log(body)
     const repoName: string = "eHawk";
     return repoName;
   }

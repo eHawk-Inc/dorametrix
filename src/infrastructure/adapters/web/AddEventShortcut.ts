@@ -34,7 +34,7 @@ export async function handler(
     const repo = createNewDynamoDbRepository();
     logger.info("here here here");
     logger.info(headers);
-    const parser = await getParser(headers);
+    const parser = getParser(headers);
     logger.info("here 0");
     const metricEvent = await makeEvent(parser, body, headers);
 
