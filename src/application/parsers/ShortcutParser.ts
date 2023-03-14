@@ -42,8 +42,6 @@ export class ShortcutParser implements Parser {
                         .then((rsp) => {
                           this.storyData = rsp.data;
                           return rsp.data;
-                        }).catch(err => {
-                          this.logger.error(err)
                         });
   }
 
@@ -69,6 +67,7 @@ export class ShortcutParser implements Parser {
 
       const eventType = webhookbody?.['actions'].filter((action: Record<string, any>) => action?.['action'] == "update" ).length > 0 ? "opened" : "unknown";
       if (eventType == 'opened') {
+/*
         //Check for Incident Label  2805 = incident
         const labelAdds = webhookbody?.['actions']?.['changes']?.['label_ids']?.['adds'];
         if (labelAdds && labelAdds.length > 0
@@ -81,7 +80,7 @@ export class ShortcutParser implements Parser {
           && labelRemoves.filter((label: number) => label == 2805 ).length > 0) {
           return "unlabeled"
         }
-
+*/
         return "opened";
       }
       
@@ -90,10 +89,10 @@ export class ShortcutParser implements Parser {
     
     switch (event) {
       case 'opened':
-      case 'labeled':
+      //case 'labeled':
         return this.handleOpenedLabeled(webhookbody, body);
       case 'closed':
-      case 'unlabeled':
+      //case 'unlabeled':
         return this.handleClosedUnlabeled(webhookbody, body);
       default:
         return {
