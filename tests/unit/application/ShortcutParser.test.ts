@@ -6,8 +6,8 @@ import { convertDateToUnixTimestamp } from 'chrono-utils';
 
 
 import {
-MissingIdError,
-MissingShortcutFieldsError,
+  MissingIdError,
+  MissingShortcutFieldsError,
 } from '../../../src/application/errors/errors';
 
 
@@ -380,12 +380,28 @@ describe('Success cases', () => {
 
   describe('Event types', () => {
 
+    test('It should return "change" for event types', async () => {
+      var storyData = genericStoryData;
+      axios.get = jest.fn(() => Promise.resolve<any>(storyData));
+
+      const parser = new ShortcutParser();
+      const eventType = await parser.getEventType({
+        headers: { },
+        body: webHookIncoming_16927
+      });
+      
+      expect(eventType).toBe('change');
+    });
+
     test('It should return "incident" for event types', async () => {
       var storyData = genericStoryData;
       axios.get = jest.fn(() => Promise.resolve<any>(storyData));
 
       const parser = new ShortcutParser();
-      const eventType = await parser.getEventType();
+      const eventType = await parser.getEventType({
+        headers: { },
+        body: webHookIncoming_labeled_16927
+      });
       
       expect(eventType).toBe('incident');
     });
@@ -529,9 +545,6 @@ describe('Success cases', () => {
         headers: {},
         body: webhookData
       });
-      var s = convertDateToUnixTimestamp(Date.now().toString())
-      console.log(s, webHookIncoming_16927, webHookIncoming_labeled_16927)
-
       expect(payload.timeResolved).toBe(Date.now().toString());
     });
 
@@ -547,9 +560,6 @@ describe('Success cases', () => {
         headers: {},
         body: webhookData
       });
-      var s = convertDateToUnixTimestamp(Date.now().toString())
-      console.log(s, webHookIncoming_16927, webHookIncoming_labeled_16927)
-
       expect(payload.timeResolved).toBe(undefined)
     });
 
@@ -674,6 +684,39 @@ describe('Success cases', () => {
 
 
 describe('Failure cases', () => {
+  describe('Event types', () => {
+    test('It should throw a MissingShortcutFieldsError if webhook data is empty', async () => {
+      var storyData = genericStoryData;
+      axios.get = jest.fn(() => Promise.resolve<any>(storyData));
+
+      const parser = new ShortcutParser();
+      try {
+        await parser.getEventType({
+          headers: { },
+          body: webHookIncoming_labeled_16927
+        });
+      } catch(e){
+        expect(e).toBeInstanceOf(MissingShortcutFieldsError);
+      }
+    });
+
+    test('It should throw a MissingShortcutFieldsError if story data is empty',async () => {
+      var webhookData = webHookIncoming_labeled_16927
+
+      axios.get = jest.fn(() => Promise.resolve<any>({ data : { } }));
+
+      const parser = new ShortcutParser();
+
+      try {
+        await parser.getPayload({
+            headers: {},
+            body: webhookData
+          })
+      } catch(e){
+        expect(e).toBeInstanceOf(MissingShortcutFieldsError);
+      }
+    });
+  });
   describe('Payloads', () => {
     test('It should throw a MissingIdError if event is missing an ID',async () => {
       const webHookIncoming = {

@@ -4,7 +4,7 @@ import { metadataConfig } from '../../config/metadata';
 import { convertDateToUnixTimestamp } from 'chrono-utils';
 
 import { EventDto } from '../../interfaces/Event';
-import { /*EventTypeInput, */Parser, PayloadInput } from '../../interfaces/Parser';
+import { EventTypeInput, Parser, PayloadInput } from '../../interfaces/Parser';
 
 
 import {
@@ -45,8 +45,17 @@ export class ShortcutParser implements Parser {
   /**
    * @description Shortcut only handles Incidents, so this simply returns a hard coded value for it.
    */
-  public async getEventType(/*eventTypeInput: EventTypeInput*/): Promise<string> {
-    return "incident"
+  public async getEventType(eventTypeInput: EventTypeInput): Promise<string> {
+    const webhookbody = eventTypeInput.body || {};
+    if(!webhookbody || Object.keys(webhookbody).length == 0) throw new MissingShortcutFieldsError();
+
+    const labelAdds = webhookbody?.['actions'][0]?.['changes']?.['label_ids']?.['adds'] || [];
+    if (labelAdds && labelAdds.length > 0
+      && (labelAdds).filter((label: number) => label == 2805 ).length > 0) {
+        return "incident"
+    }
+
+    return "change"
   }
 
   /**
