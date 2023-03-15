@@ -8,11 +8,8 @@ import { /*EventTypeInput, */Parser, PayloadInput } from '../../interfaces/Parse
 
 
 import {
-//  MissingEventTimeError,
-//  MissingEventError,
   MissingIdError,
-//  MissingShortcutFieldsError,
-//  UnknownEventTypeError
+  MissingShortcutFieldsError,
 } from '../errors/errors';
 
 /**
@@ -25,11 +22,11 @@ export class ShortcutParser implements Parser {
   logger: MikroLog;
 
   constructor() {
+    /* istanbul ignore next */
     this.shortcutToken = process.env.SHORTCUT_TOKEN ?? "64060923-33b7-457f-91ea-4db7893273fa";
     this.logger = MikroLog.start({ metadataConfig: metadataConfig });
   }
   
-
   private async getStoryData(body: Record<string, any>) : Promise<Record<string, any>>
   {
     if(Object.keys(this.storyData).length > 0) return this.storyData;
@@ -57,7 +54,10 @@ export class ShortcutParser implements Parser {
    */
   public async getPayload(payloadInput: PayloadInput): Promise<EventDto> {
     const webhookbody = payloadInput.body || {};
+    if(!webhookbody || Object.keys(webhookbody).length == 0) throw new MissingShortcutFieldsError();
+
     const body = await this.getStoryData(webhookbody);
+    if(!body || Object.keys(body).length == 0) throw new MissingShortcutFieldsError();
 
     const event = (() => {
       if(body?.['completed'] == true) return "closed";
@@ -67,20 +67,18 @@ export class ShortcutParser implements Parser {
 
       const eventType = webhookbody?.['actions'].filter((action: Record<string, any>) => action?.['action'] == "update" ).length > 0 ? "opened" : "unknown";
       if (eventType == 'opened') {
-/*
-        //Check for Incident Label  2805 = incident
-        const labelAdds = webhookbody?.['actions']?.['changes']?.['label_ids']?.['adds'];
+        const labelAdds = webhookbody?.['actions'][0]?.['changes']?.['label_ids']?.['adds'] || [];
         if (labelAdds && labelAdds.length > 0
-            && labelAdds.filter((label: number) => label == 2805 ).length > 0) {
-          return "labeled"
+          && (labelAdds).filter((label: number) => label == 2805 ).length > 0) {
+            return "labeled"
         }
 
-        const labelRemoves = webhookbody?.['actions']?.['changes']?.['label_ids']?.['removes'];
+        const labelRemoves = webhookbody?.['actions'][0]?.['changes']?.['label_ids']?.['removes'] || [];
         if (labelRemoves && labelRemoves.length > 0
-          && labelRemoves.filter((label: number) => label == 2805 ).length > 0) {
-          return "unlabeled"
+          && (labelRemoves).filter((label: number) => label == 2805 ).length > 0) {
+            return "unlabeled"
         }
-*/
+
         return "opened";
       }
       
@@ -89,10 +87,10 @@ export class ShortcutParser implements Parser {
     
     switch (event) {
       case 'opened':
-      //case 'labeled':
+      case 'labeled':
         return this.handleOpenedLabeled(webhookbody, body);
       case 'closed':
-      //case 'unlabeled':
+      case 'unlabeled':
         return this.handleClosedUnlabeled(webhookbody, body);
       default:
         return {
@@ -110,7 +108,6 @@ export class ShortcutParser implements Parser {
     return {
       eventTime: webhook?.['changed_at'],
       timeCreated: convertDateToUnixTimestamp(body?.['created_at']),
-      timeResolved: this.handleTimeResolved(body),
       id: body?.['id'],
       title: body?.['name'],
       message: JSON.stringify(body)
@@ -130,8 +127,8 @@ export class ShortcutParser implements Parser {
 
   private handleTimeResolved(body: Record<string, any>) {
     return body?.['completed'] || body?.['archived']
-             ? convertDateToUnixTimestamp(body?.['completed_at_override']?.toString() || body?.['completed_at']?.toString() ) 
-             : '';
+             ? convertDateToUnixTimestamp(body?.['completed_at_override']?.toString() || body?.['completed_at']?.toString()) 
+             : Date.now().toString();
   }
 
   

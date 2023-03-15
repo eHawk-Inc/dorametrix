@@ -6,11 +6,8 @@ import { convertDateToUnixTimestamp } from 'chrono-utils';
 
 
 import {
-//  MissingEventTimeError,
-//  MissingEventError,
-  MissingIdError,
-//  MissingJiraFieldsError,
-//  MissingJiraMatchedCustomFieldKeyError
+MissingIdError,
+MissingShortcutFieldsError,
 } from '../../../src/application/errors/errors';
 
 
@@ -76,6 +73,50 @@ const webHookIncoming_labeled_16927 = {
           "name": "Incident",
           "app_url": "https://app.shortcut.com/ehawk/label/2805"
       }
+  ]
+}
+
+const webHookIncoming_remove_labeled_16927 = {
+  id: "595285dc-9c43-4b9c-a1e6-0cd9aff5b084",
+  changed_at: "2017-06-27T16:20:44Z",
+  primary_id: 16927,
+  member_id: "56d8a839-1c52-437f-b981-c3a15a11d6d4",
+  version: "v1",
+  actions: [
+    {
+        "id": 2507,
+        "entity_type": "story",
+        "action": "update",
+        "name": "Deploy current product to np-usea1-3",
+        "story_type": "feature",
+        "app_url": "https://app.shortcut.com/ehawk/story/2507",
+        "changes": {
+            "label_ids": {
+                "removes": [
+                    2805
+                ]
+            }
+        }
+    }
+  ]
+}
+
+const webHookIncoming_no_label_changes_16927 = {
+  id: "595285dc-9c43-4b9c-a1e6-0cd9aff5b084",
+  changed_at: "2017-06-27T16:20:44Z",
+  primary_id: 16927,
+  member_id: "56d8a839-1c52-437f-b981-c3a15a11d6d4",
+  version: "v1",
+  actions: [
+    {
+        "id": 2507,
+        "entity_type": "story",
+        "action": "update",
+        "name": "Deploy current product to np-usea1-3",
+        "story_type": "feature",
+        "app_url": "https://app.shortcut.com/ehawk/story/2507",
+        "changes": { }
+    }
   ]
 }
 
@@ -364,13 +405,15 @@ describe('Success cases', () => {
 
       expect(payload).toHaveProperty('eventTime');
       expect(payload).toHaveProperty('timeCreated');
+      expect(payload).toHaveProperty('timeResolved');
       expect(payload).toHaveProperty('id');
+      expect(payload).toHaveProperty('title');
       expect(payload).toHaveProperty('message');
     });
 
 
     test('It should return incident label', async () => {
-      var storyData = JSON.parse(JSON.stringify(genericStoryData));
+      var storyData = JSON.parse(JSON.stringify(specificStoryData));
       axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
 
       const parser = new ShortcutParser();
@@ -381,7 +424,9 @@ describe('Success cases', () => {
 
       expect(payload).toHaveProperty('eventTime');
       expect(payload).toHaveProperty('timeCreated');
+      expect(payload).not.toHaveProperty('timeResolved');
       expect(payload).toHaveProperty('id');
+      expect(payload).toHaveProperty('title');
       expect(payload).toHaveProperty('message');
     });
 
@@ -398,7 +443,28 @@ describe('Success cases', () => {
 
       expect(payload.eventTime).toBe("2017-06-27T16:20:44Z");
       expect(payload.timeCreated).toBe(convertDateToUnixTimestamp('2016-12-31T12:30:00Z'));
-      expect(payload.timeResolved).toBe('');
+      expect(payload.timeResolved).toBe(undefined)
+      expect(payload.id).toBe(123);
+      expect(payload.title).toBe("foo");
+      expect(payload.message).toBe(JSON.stringify(storyData));
+    });
+
+    test('It should return assigned properties on create', async () => {
+      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
+
+      var webhookData = webHookIncoming_labeled_16927
+      webhookData.actions[0].action = "create";
+
+      const parser = new ShortcutParser();
+      const payload = await parser.getPayload({
+        headers: {},
+        body: webhookData
+      });
+
+      expect(payload.eventTime).toBe("2017-06-27T16:20:44Z");
+      expect(payload.timeCreated).toBe(convertDateToUnixTimestamp('2016-12-31T12:30:00Z'));
+      expect(payload.timeResolved).toBe(undefined)
       expect(payload.id).toBe(123);
       expect(payload.title).toBe("foo");
       expect(payload.message).toBe(JSON.stringify(storyData));
@@ -451,6 +517,41 @@ describe('Success cases', () => {
       expect(payload.message).toBe(JSON.stringify(storyData));
     });
 
+    test('It should mark unlabeled events are closed', async () => {
+      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var webhookData = webHookIncoming_remove_labeled_16927
+
+      Date.now = jest.fn(() => 1487076708000) 
+      axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
+
+      const parser = new ShortcutParser();
+      const payload = await parser.getPayload({
+        headers: {},
+        body: webhookData
+      });
+      var s = convertDateToUnixTimestamp(Date.now().toString())
+      console.log(s, webHookIncoming_16927, webHookIncoming_labeled_16927)
+
+      expect(payload.timeResolved).toBe(Date.now().toString());
+    });
+
+    test('It should make updates with no labels as opened', async () => {
+      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var webhookData = webHookIncoming_no_label_changes_16927
+
+      Date.now = jest.fn(() => 1487076708000) 
+      axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
+
+      const parser = new ShortcutParser();
+      const payload = await parser.getPayload({
+        headers: {},
+        body: webhookData
+      });
+      var s = convertDateToUnixTimestamp(Date.now().toString())
+      console.log(s, webHookIncoming_16927, webHookIncoming_labeled_16927)
+
+      expect(payload.timeResolved).toBe(undefined)
+    });
 
     test('It should return assigned properties on archived', async () => {
       var storyData = JSON.parse(JSON.stringify(specificStoryData));;
@@ -459,7 +560,7 @@ describe('Success cases', () => {
       storyData.completed_at = "2016-12-31T12:30:00Z"
 
       var webhookData = webHookIncoming_labeled_16927
-      webhookData.actions[0].action = "created";
+      webhookData.actions[0].action = "create";
 
       axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
 
@@ -590,6 +691,49 @@ describe('Failure cases', () => {
         })
       } catch(e){
         expect(e).toBeInstanceOf(MissingIdError);
+      }
+    });
+
+    test('It should throw a MissingShortcutFieldsError if webhook data is empty',async () => {
+      const webHookIncoming = { }
+
+      const parser = new ShortcutParser();
+      try {
+      await parser.getPayload({
+          headers: {},
+          body: webHookIncoming
+        })
+      } catch(e){
+        expect(e).toBeInstanceOf(MissingShortcutFieldsError);
+      }
+    });
+
+    test('It should throw a MissingShortcutFieldsError if webhook data is undefined',async () => {
+      const parser = new ShortcutParser();
+      try {
+      await parser.getPayload({
+          headers: {},
+          body: undefined
+        })
+      } catch(e){
+        expect(e).toBeInstanceOf(MissingShortcutFieldsError);
+      }
+    });
+
+    test('It should throw a MissingShortcutFieldsError if story data is empty',async () => {
+      var webhookData = webHookIncoming_labeled_16927
+
+      axios.get = jest.fn(() => Promise.resolve<any>({ data : { } }));
+
+      const parser = new ShortcutParser();
+
+      try {
+        await parser.getPayload({
+            headers: {},
+            body: webhookData
+          })
+      } catch(e){
+        expect(e).toBeInstanceOf(MissingShortcutFieldsError);
       }
     });
   });
