@@ -32,15 +32,10 @@ export async function handler(
     const headers = event.headers;
 
     const repo = createNewDynamoDbRepository();
-    logger.info("here here here");
-    logger.info(headers);
     const parser = await getParser(headers);
-    logger.info("here 0");
     const metricEvent = await makeEvent(parser, body, headers);
 
-    logger.info("event type is: " + metricEvent.eventType);
     await createEvent(repo, metricEvent);
-    logger.info("all done");
 
     return {
       statusCode: 204,
