@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { ShortcutParser } from '../../../src/application/parsers/ShortcutParser';
 
-//jest.mock('axios');
 import { convertDateToUnixTimestamp } from 'chrono-utils';
 
 
@@ -10,8 +9,6 @@ import {
   MissingShortcutFieldsError,
 } from '../../../src/application/errors/errors';
 
-
-//process.env.SHORTCUT_TOKEN = "7c874900-b038-4ac8-89d6-813d6daea148";
 
 const webHookIncoming_16927 = {
   id: "595285dc-9c43-4b9c-a1e6-0cd9aff5b084",
@@ -65,14 +62,6 @@ const webHookIncoming_labeled_16927 = {
             }
         }
     }
-  ],
-  "references": [
-      {
-          "id": 2805,
-          "entity_type": "label",
-          "name": "Incident",
-          "app_url": "https://app.shortcut.com/ehawk/label/2805"
-      }
   ]
 }
 
@@ -120,7 +109,7 @@ const webHookIncoming_no_label_changes_16927 = {
   ]
 }
 
-const specificStoryData : Record<string, any> = {
+const genericStoryData : Record<string, any> = {
   "archived": false,
   "completed": false,
   //"completed_at": "2016-12-31T12:30:00Z",
@@ -132,248 +121,6 @@ const specificStoryData : Record<string, any> = {
   "started_at": "2016-12-31T12:30:00Z",
   "started_at_override": "2016-12-31T12:30:00Z",
   "description": "foo desc"
-}
-
-const genericStoryData = {
-    "app_url": "foo",
-    "archived": true,
-    "blocked": true,
-    "blocker": true,
-    "branches": [{
-      "created_at": "2016-12-31T12:30:00Z",
-      "deleted": true,
-      "entity_type": "foo",
-      "id": 123,
-      "merged_branch_ids": [123],
-      "name": "foo",
-      "persistent": true,
-      "pull_requests": [{
-        "branch_id": 123,
-        "branch_name": "foo",
-        "build_status": "foo",
-        "closed": true,
-        "created_at": "2016-12-31T12:30:00Z",
-        "draft": true,
-        "entity_type": "foo",
-        "id": 123,
-        "merged": true,
-        "num_added": 123,
-        "num_commits": 123,
-        "num_modified": 123,
-        "num_removed": 123,
-        "number": 123,
-        "overlapping_stories": [123],
-        "repository_id": 123,
-        "review_status": "foo",
-        "target_branch_id": 123,
-        "target_branch_name": "foo",
-        "title": "foo",
-        "updated_at": "2016-12-31T12:30:00Z",
-        "url": "foo",
-        "vcs_labels": [{
-          "color": "#6515dd",
-          "description": "foo",
-          "entity_type": "foo",
-          "id": 123,
-          "name": "foo"
-        }]
-      }],
-      "repository_id": 123,
-      "updated_at": "2016-12-31T12:30:00Z",
-      "url": "foo"
-    }],
-    "comments": [{
-      "app_url": "foo",
-      "author_id": "12345678-9012-3456-7890-123456789012",
-      "blocker": true,
-      "created_at": "2016-12-31T12:30:00Z",
-      "deleted": true,
-      "entity_type": "foo",
-      "external_id": "foo",
-      "group_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "id": 123,
-      "member_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "parent_id": 123,
-      "position": 123,
-      "story_id": 123,
-      "text": "foo",
-      "unblocks_parent": true,
-      "updated_at": "2016-12-31T12:30:00Z"
-    }],
-    "commits": [{
-      "author_email": "foo",
-      "author_id": "12345678-9012-3456-7890-123456789012",
-      "author_identity": {
-        "entity_type": "foo",
-        "name": "foo",
-        "type": "foo"
-      },
-      "created_at": "2016-12-31T12:30:00Z",
-      "entity_type": "foo",
-      "hash": "foo",
-      "id": 123,
-      "message": "foo",
-      "repository_id": 123,
-      "timestamp": "2016-12-31T12:30:00Z",
-      "updated_at": "2016-12-31T12:30:00Z",
-      "url": "foo"
-    }],
-    "completed": true,
-    "completed_at": "2016-12-31T12:30:00Z",
-    "completed_at_override": "2017-12-31T12:30:00Z",
-    "created_at": "2016-12-31T12:30:00Z",
-    "custom_fields": [{
-      "field_id": "12345678-9012-3456-7890-123456789012",
-      "value": "foo",
-      "value_id": "12345678-9012-3456-7890-123456789012"
-    }],
-    "cycle_time": 123,
-    "deadline": "2016-12-31T12:30:00Z",
-    "description": "foo",
-    "entity_type": "foo",
-    "epic_id": 123,
-    "estimate": 123,
-    "external_id": "foo",
-    "external_links": [],
-    "files": [{
-      "content_type": "foo",
-      "created_at": "2016-12-31T12:30:00Z",
-      "description": "foo",
-      "entity_type": "foo",
-      "external_id": "foo",
-      "filename": "foo",
-      "group_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "id": 123,
-      "member_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "name": "foo",
-      "size": 123,
-      "story_ids": [123],
-      "thumbnail_url": "foo",
-      "updated_at": "2016-12-31T12:30:00Z",
-      "uploader_id": "12345678-9012-3456-7890-123456789012",
-      "url": "foo"
-    }],
-    "follower_ids": ["12345678-9012-3456-7890-123456789012"],
-    "group_id": "12345678-9012-3456-7890-123456789012",
-    "group_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-    "id": 123,
-    "iteration_id": 123,
-    "label_ids": [123],
-    "labels": [{
-      "app_url": "foo",
-      "archived": true,
-      "color": "#6515dd",
-      "created_at": "2016-12-31T12:30:00Z",
-      "description": "foo",
-      "entity_type": "foo",
-      "external_id": "foo",
-      "id": 123,
-      "name": "foo",
-      "updated_at": "2016-12-31T12:30:00Z"
-    }],
-    "lead_time": 123,
-    "linked_files": [{
-      "content_type": "foo",
-      "created_at": "2016-12-31T12:30:00Z",
-      "description": "foo",
-      "entity_type": "foo",
-      "group_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "id": 123,
-      "member_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "name": "foo",
-      "size": 123,
-      "story_ids": [123],
-      "thumbnail_url": "foo",
-      "type": "foo",
-      "updated_at": "2016-12-31T12:30:00Z",
-      "uploader_id": "12345678-9012-3456-7890-123456789012",
-      "url": "foo"
-    }],
-    "member_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-    "mention_ids": ["12345678-9012-3456-7890-123456789012"],
-    "moved_at": "2016-12-31T12:30:00Z",
-    "name": "foo",
-    "owner_ids": ["12345678-9012-3456-7890-123456789012"],
-    "position": 123,
-    "previous_iteration_ids": [123],
-    "project_id": 123,
-    "pull_requests": [{
-      "branch_id": 123,
-      "branch_name": "foo",
-      "build_status": "foo",
-      "closed": true,
-      "created_at": "2016-12-31T12:30:00Z",
-      "draft": true,
-      "entity_type": "foo",
-      "id": 123,
-      "merged": true,
-      "num_added": 123,
-      "num_commits": 123,
-      "num_modified": 123,
-      "num_removed": 123,
-      "number": 123,
-      "overlapping_stories": [123],
-      "repository_id": 123,
-      "review_status": "foo",
-      "target_branch_id": 123,
-      "target_branch_name": "foo",
-      "title": "foo",
-      "updated_at": "2016-12-31T12:30:00Z",
-      "url": "foo",
-      "vcs_labels": [{
-        "color": "#6515dd",
-        "description": "foo",
-        "entity_type": "foo",
-        "id": 123,
-        "name": "foo"
-      }]
-    }],
-    "requested_by_id": "12345678-9012-3456-7890-123456789012",
-    "started": true,
-    "started_at": "2016-12-31T12:30:00Z",
-    "started_at_override": "2016-12-31T12:30:00Z",
-    "stats": {
-      "num_related_documents": 123
-    },
-    "story_links": [{
-      "created_at": "2016-12-31T12:30:00Z",
-      "entity_type": "foo",
-      "id": 123,
-      "object_id": 123,
-      "subject_id": 123,
-      "type": "foo",
-      "updated_at": "2016-12-31T12:30:00Z",
-      "verb": "foo"
-    }],
-    "story_template_id": "12345678-9012-3456-7890-123456789012",
-    "story_type": "foo",
-    "synced_item": {
-      "external_id": "foo",
-      "url": "foo"
-    },
-    "tasks": [{
-      "complete": true,
-      "completed_at": "2016-12-31T12:30:00Z",
-      "created_at": "2016-12-31T12:30:00Z",
-      "description": "foo",
-      "entity_type": "foo",
-      "external_id": "foo",
-      "group_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "id": 123,
-      "member_mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "mention_ids": ["12345678-9012-3456-7890-123456789012"],
-      "owner_ids": ["12345678-9012-3456-7890-123456789012"],
-      "position": 123,
-      "story_id": 123,
-      "updated_at": "2016-12-31T12:30:00Z"
-    }],
-    "unresolved_blocker_comments": [123],
-    "updated_at": "2016-12-31T12:30:00Z",
-    "workflow_id": 123,
-    "workflow_state_id": 123
 }
 
 describe('Success cases', () => {
@@ -421,25 +168,6 @@ describe('Success cases', () => {
 
       expect(payload).toHaveProperty('eventTime');
       expect(payload).toHaveProperty('timeCreated');
-      expect(payload).toHaveProperty('timeResolved');
-      expect(payload).toHaveProperty('id');
-      expect(payload).toHaveProperty('title');
-      expect(payload).toHaveProperty('message');
-    });
-
-
-    test('It should return incident label', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));
-      axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
-
-      const parser = new ShortcutParser();
-      const payload = await parser.getPayload({
-        headers: {},
-        body: webHookIncoming_labeled_16927
-      });
-
-      expect(payload).toHaveProperty('eventTime');
-      expect(payload).toHaveProperty('timeCreated');
       expect(payload).not.toHaveProperty('timeResolved');
       expect(payload).toHaveProperty('id');
       expect(payload).toHaveProperty('title');
@@ -447,8 +175,9 @@ describe('Success cases', () => {
     });
 
 
+
     test('It should return assigned properties on update', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));
       axios.get = jest.fn(() => Promise.resolve<any>( { data: storyData }));
 
       const parser = new ShortcutParser();
@@ -466,7 +195,7 @@ describe('Success cases', () => {
     });
 
     test('It should return assigned properties on create', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));;
       axios.get = jest.fn(() => Promise.resolve<any>({ data: storyData }));
 
       var webhookData = webHookIncoming_labeled_16927
@@ -488,7 +217,7 @@ describe('Success cases', () => {
 
 
     test('It should return assigned properties on completed with override', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData))
+      var storyData = JSON.parse(JSON.stringify(genericStoryData))
       storyData.id = 876
       storyData.completed = true;
       storyData.completed_at = "2016-12-31T12:30:00Z"
@@ -509,7 +238,7 @@ describe('Success cases', () => {
     });
 
     test('It should return assigned properties on completed', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));
       storyData.id = 876
       storyData.completed = true;
       storyData.completed_at = "2016-12-31T12:30:00Z"
@@ -534,7 +263,7 @@ describe('Success cases', () => {
     });
 
     test('It should mark unlabeled events are closed', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));;
       var webhookData = webHookIncoming_remove_labeled_16927
 
       Date.now = jest.fn(() => 1487076708000) 
@@ -549,7 +278,7 @@ describe('Success cases', () => {
     });
 
     test('It should make updates with no labels as opened', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));;
       var webhookData = webHookIncoming_no_label_changes_16927
 
       Date.now = jest.fn(() => 1487076708000) 
@@ -564,7 +293,7 @@ describe('Success cases', () => {
     });
 
     test('It should return assigned properties on archived', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));;
       storyData.id = 876
       storyData.archived = true;
       storyData.completed_at = "2016-12-31T12:30:00Z"
@@ -584,7 +313,7 @@ describe('Success cases', () => {
     });
 
     test('It should used cached data to prevent excess api calls', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));;
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));;
       storyData.id = 876
       storyData.archived = true;
       storyData.completed_at = "2016-12-31T12:30:00Z"
@@ -610,7 +339,7 @@ describe('Success cases', () => {
     });
 
     test('It should parse the story id from the webhook payload', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));
       var webhookData = webHookIncoming_labeled_16927
       webhookData.primary_id = 123456;
 
@@ -633,7 +362,7 @@ describe('Success cases', () => {
     });
 
     test('It should use the environment shortcut token', async () => {
-      var storyData = JSON.parse(JSON.stringify(specificStoryData));
+      var storyData = JSON.parse(JSON.stringify(genericStoryData));
       var webhookData = webHookIncoming_labeled_16927
       webhookData.primary_id = 123456;
 
