@@ -189,7 +189,7 @@ describe('Success cases', () => {
       expect(payload.eventTime).toBe("2017-06-27T16:20:44Z");
       expect(payload.timeCreated).toBe(convertDateToUnixTimestamp('2016-12-31T12:30:00Z'));
       expect(payload.timeResolved).toBe(undefined)
-      expect(payload.id).toBe(123);
+      expect(payload.id).toBe("123");
       expect(payload.title).toBe("foo");
       expect(payload.message).toBe(JSON.stringify(storyData));
     });
@@ -210,7 +210,7 @@ describe('Success cases', () => {
       expect(payload.eventTime).toBe("2017-06-27T16:20:44Z");
       expect(payload.timeCreated).toBe(convertDateToUnixTimestamp('2016-12-31T12:30:00Z'));
       expect(payload.timeResolved).toBe(undefined)
-      expect(payload.id).toBe(123);
+      expect(payload.id).toBe("123");
       expect(payload.title).toBe("foo");
       expect(payload.message).toBe(JSON.stringify(storyData));
     });
@@ -257,7 +257,7 @@ describe('Success cases', () => {
       expect(payload.eventTime).toBe("2017-06-27T16:20:44Z");
       expect(payload.timeCreated).toBe(convertDateToUnixTimestamp('2016-12-31T12:30:00Z'));
       expect(payload.timeResolved).toBe(convertDateToUnixTimestamp('2016-12-31T12:30:00Z'));
-      expect(payload.id).toBe(876);
+      expect(payload.id).toBe("876");
       expect(payload.title).toBe("foo");
       expect(payload.message).toBe(JSON.stringify(storyData));
     });
