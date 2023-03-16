@@ -36,6 +36,7 @@ custom:
     maxDateRange: 30
     tableName: dorametrix
     shortcutToken: 64060923-33b7-457f-91ea-4db7893273fa
+    shortcutIncidentLabelId: 2805
   aws:
     databaseArn: arn:aws:dynamodb:${self:provider.region}:${self:custom.config.accountNumber}:table/${self:custom.config.tableName}
     apiGatewayCachingTtl:
@@ -81,6 +82,7 @@ functions:
       TABLE_NAME: ${self:custom.config.tableName}
       MAX_DATE_RANGE: ${self:custom.config.maxDateRange}
       SHORTCUT_TOKEN: ${self:custom.config.shortcutToken}
+      SHORTCUT_INCIDENT_LABEL_ID: ${self:custom.config.shortcutIncidentLabelId}
   GetMetrics:
     handler: src/infrastructure/adapters/web/GetMetrics.handler
     description: Get DORA metrics
