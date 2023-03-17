@@ -1,0 +1,541 @@
+/*
+https://ehawkinc.slack.com/apps/AKEEF9DTM-launchdarkly?tab=more_info
+https://slack.com/help/articles/360041352714-Create-more-advanced-workflows-using-webhooks
+{
+  "meanTimeToRecovery": "Example text",
+  "deploymentFrequency": "Example text",
+  "changeFailureRate": "Example text",
+  "leadTimeForChange": "Example text",
+  "chartUrl": "Example text"    https://quickchart.io/documentation/
+}
+
+
+  https://api.app.shortcut.com
+  export SHORTCUT_API_TOKEN="YOUR API TOKEN HERE"
+    Shortcut-Token
+    https://developer.shortcut.com/api/rest/v3#Get-Story
+
+  Get timeCreated 
+  action: deleted, api-call Shortcut API ['primary_id']
+  action: update, api-call Shortcut API ['primary_id']
+  action: create, ['changed_at']
+
+  curl -X GET \
+  -H "Content-Type: application/json" \
+  -H "Shortcut-Token: $SHORTCUT_API_TOKEN" \
+  -L "https://api.app.shortcut.com/api/v3/stories/{story-public-id}"
+
+  https://developer.shortcut.com/api/rest/v3#Responses-91306
+    started_at
+      started_at_override
+
+    "labels": [{
+        "app_url": "foo",
+        "archived": true,
+        "color": "#6515dd",
+        "created_at": "2016-12-31T12:30:00Z",
+        "description": "foo",
+        "entity_type": "foo",
+        "external_id": "foo",
+        "id": 123,
+        "name": "foo",
+        "updated_at": "2016-12-31T12:30:00Z"
+      }],
+      */
+
+change description:
+"message": {
+        "id": "64089fbb-700f-4b32-a3f6-797ad697fb85",
+        "changed_at": "2023-03-08T14:46:19.813Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "description": {
+                        "new": "the description",
+                        "old": ""
+                    }
+                }
+            }
+        ]
+    }
+
+add task:
+"message": {
+        "id": "64089fc1-04ec-49f1-8d64-ccda6fdbdd1b",
+        "changed_at": "2023-03-08T14:46:25.635Z",
+        "version": "v1",
+        "primary_id": 3082,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 3082,
+                "entity_type": "story-task",
+                "action": "create",
+                "description": "a task",
+                "complete": false
+            },
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "task_ids": {
+                        "adds": [
+                            3082
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+move from in progress to in acceptance:
+"message": {
+        "id": "6408a0a0-1acd-4f4c-b8f9-3afd9310fb6d",
+        "changed_at": "2023-03-08T14:50:08.149Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "position": {
+                        "new": 42147074048,
+                        "old": 32164940800
+                    },
+                    "workflow_state_id": {
+                        "new": 500000456,
+                        "old": 500000008
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 500000456,
+                "entity_type": "workflow-state",
+                "name": "In Acceptance",
+                "type": "started"
+            },
+            {
+                "id": 500000008,
+                "entity_type": "workflow-state",
+                "name": "In Progress",
+                "type": "started"
+            }
+        ]
+    }
+
+move from in progress to in acceptance:
+"message": {
+        "id": "6408a137-25da-4da4-995e-174f139418ba",
+        "changed_at": "2023-03-08T14:52:39.901Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "position": {
+                        "new": 52157600768,
+                        "old": 42147074048
+                    },
+                    "workflow_state_id": {
+                        "new": 500000022,
+                        "old": 500000456
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 500000022,
+                "entity_type": "workflow-state",
+                "name": "Ready for Deployment",
+                "type": "started"
+            },
+            {
+                "id": 500000456,
+                "entity_type": "workflow-state",
+                "name": "In Acceptance",
+                "type": "started"
+            }
+        ]
+    }
+
+    move from in acceptance to deployed:
+    "message": {
+        "id": "6408a1ee-3250-4c69-96ea-b6d4b617749d",
+        "changed_at": "2023-03-08T14:55:42.576Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "completed_at": {
+                        "new": "2023-03-08T14:55:42Z"
+                    },
+                    "completed": {
+                        "new": true,
+                        "old": false
+                    },
+                    "position": {
+                        "new": 62144665583,
+                        "old": 52157600768
+                    },
+                    "workflow_state_id": {
+                        "new": 500000011,
+                        "old": 500000022
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 500000011,
+                "entity_type": "workflow-state",
+                "name": "Deployed",
+                "type": "done"
+            },
+            {
+                "id": 500000022,
+                "entity_type": "workflow-state",
+                "name": "Ready for Deployment",
+                "type": "started"
+            }
+        ]
+    },
+
+    move from deployed to in progress 
+    "message": {
+        "id": "6408a28a-5f6c-4ccc-b479-b1f0be18cb4d",
+        "changed_at": "2023-03-08T14:58:18.545Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "completed_at": {
+                        "old": "2023-03-08T14:55:42Z"
+                    },
+                    "completed": {
+                        "new": false,
+                        "old": true
+                    },
+                    "position": {
+                        "new": 32161762304,
+                        "old": 62144665583
+                    },
+                    "workflow_state_id": {
+                        "new": 500000008,
+                        "old": 500000011
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 500000008,
+                "entity_type": "workflow-state",
+                "name": "In Progress",
+                "type": "started"
+            },
+            {
+                "id": 500000011,
+                "entity_type": "workflow-state",
+                "name": "Deployed",
+                "type": "done"
+            }
+        ]
+    }
+
+    add a lable - incident
+    "message": {
+        "id": "6408a2f0-d96c-400c-a090-7ca43fd31522",
+        "changed_at": "2023-03-08T15:00:01.050Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "label_ids": {
+                        "adds": [
+                            2805
+                        ]
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 2805,
+                "entity_type": "label",
+                "name": "Incident",
+                "app_url": "https://app.shortcut.com/ehawk/label/2805"
+            }
+        ]
+    }
+
+link a branch and commit to a ticket
+"message": {
+        "id": "6408a4b4-1239-455b-9f1e-1bcd422a21c1",
+        "changed_at": "2023-03-08T15:07:32.423Z",
+        "version": "v1",
+        "primary_id": 500000583,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 500000583,
+                "entity_type": "branch",
+                "action": "create",
+                "name": "feature/sc-2507/deploy-current-product-to-np-usea1-3",
+                "url": "https://github.com/eHawk-Inc/ehawk-lambdas/tree/feature/sc-2507/deploy-current-product-to-np-usea1-3"
+            },
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "commit_ids": {
+                        "adds": [
+                            500000584
+                        ]
+                    },
+                    "branch_ids": {
+                        "adds": [
+                            500000583
+                        ]
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 500000584,
+                "entity_type": "commit",
+                "message": "Deploy current product to np usea1 3 [sc-2507]",
+                "url": "https://github.com/eHawk-Inc/ehawk-lambdas/commit/9d8130940419b9ecbf8e8b033245f83311f83a74"
+            }
+        ]
+    },
+
+move from in progress to in acceptance with commits + branch tied to ticket (commit and branch not in fields)
+"message": {
+        "id": "6408a4d9-fc56-4971-a1ee-6f8c07f6d26f",
+        "changed_at": "2023-03-08T15:08:09.342Z",
+        "version": "v1",
+        "primary_id": 2507,
+        "member_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+        "actions": [
+            {
+                "id": 2507,
+                "entity_type": "story",
+                "action": "update",
+                "name": "Deploy current product to np-usea1-3",
+                "story_type": "feature",
+                "app_url": "https://app.shortcut.com/ehawk/story/2507",
+                "changes": {
+                    "position": {
+                        "new": 42147074048,
+                        "old": 32161762304
+                    },
+                    "workflow_state_id": {
+                        "new": 500000456,
+                        "old": 500000008
+                    }
+                }
+            }
+        ],
+        "references": [
+            {
+                "id": 500000456,
+                "entity_type": "workflow-state",
+                "name": "In Acceptance",
+                "type": "started"
+            },
+            {
+                "id": 500000008,
+                "entity_type": "workflow-state",
+                "name": "In Progress",
+                "type": "started"
+            }
+        ]
+    },
+
+app shortcut get story by id
+ci-cd-tutorial % curl -X GET \
+  -H "Content-Type: application/json" \
+  -H "Shortcut-Token: 64060923-33b7-457f-91ea-4db7893273fa" \
+  -L "https://api.app.shortcut.com/api/v3/stories/2507"
+
+  {
+  "app_url": "https://app.shortcut.com/ehawk/story/2507",
+  "description": "the description",
+  "archived": false,
+  "started": true,
+  "story_links": [],
+  "entity_type": "story",
+  "labels": [
+    {
+      "app_url": "https://app.shortcut.com/ehawk/label/2805",
+      "description": "",
+      "archived": false,
+      "entity_type": "label",
+      "color": "#cc5856",
+      "name": "Incident",
+      "global_id": "v2:l:62574652-e906-44d1-8c5f-ca244c446af2:2805",
+      "updated_at": "2023-02-21T18:39:15Z",
+      "external_id": null,
+      "id": 2805,
+      "created_at": "2023-02-21T18:39:15Z"
+    }
+  ],
+  "mention_ids": [],
+  "member_mention_ids": [],
+  "story_type": "feature",
+  "custom_fields": [],
+  "linked_files": [],
+  "workflow_id": 500000005,
+  "completed_at_override": null,
+  "started_at": "2023-02-08T22:10:37Z",
+  "completed_at": null,
+  "name": "Deploy current product to np-usea1-3",
+  "global_id": "v2:s:62574652-e906-44d1-8c5f-ca244c446af2:2507",
+  "completed": false,
+  "comments": [],
+  "blocker": false,
+  "branches": [
+    {
+      "entity_type": "branch",
+      "deleted": false,
+      "name": "feature/sc-2507/deploy-current-product-to-np-usea1-3",
+      "persistent": false,
+      "updated_at": "2023-03-08T15:07:32Z",
+      "pull_requests": [],
+      "merged_branch_ids": [],
+      "id": 500000583,
+      "url": "https://github.com/eHawk-Inc/ehawk-lambdas/tree/feature/sc-2507/deploy-current-product-to-np-usea1-3",
+      "repository_id": 500000104,
+      "created_at": "2023-03-08T15:07:32Z"
+    }
+  ],
+  "epic_id": null,
+  "story_template_id": null,
+  "external_links": [],
+  "previous_iteration_ids": [],
+  "requested_by_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+  "iteration_id": null,
+  "tasks": [
+    {
+      "description": "a task",
+      "entity_type": "story-task",
+      "story_id": 2507,
+      "mention_ids": [],
+      "member_mention_ids": [],
+      "completed_at": null,
+      "updated_at": "2023-03-08T14:46:25Z",
+      "group_mention_ids": [],
+      "owner_ids": [],
+      "external_id": null,
+      "id": 3082,
+      "position": 1,
+      "complete": false,
+      "created_at": "2023-03-08T14:46:25Z"
+    }
+  ],
+  "label_ids": [
+    2805
+  ],
+  "started_at_override": null,
+  "group_id": "62574652-da47-4a2c-9ded-f5ce18194432",
+  "workflow_state_id": 500000456,
+  "updated_at": "2023-03-08T15:08:09Z",
+  "pull_requests": [],
+  "group_mention_ids": [],
+  "follower_ids": [
+    "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1"
+  ],
+  "owner_ids": [
+    "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1"
+  ],
+  "external_id": null,
+  "id": 2507,
+  "estimate": null,
+  "commits": [
+    {
+      "entity_type": "commit",
+      "author_id": "62b9df11-97c3-4620-a9aa-6e0ccdae4fa1",
+      "hash": "9d8130940419b9ecbf8e8b033245f83311f83a74",
+      "updated_at": "2023-03-08T15:07:32Z",
+      "id": 500000584,
+      "url": "https://github.com/eHawk-Inc/ehawk-lambdas/commit/9d8130940419b9ecbf8e8b033245f83311f83a74",
+      "author_email": "ericchristensen@ehawksolutions.com",
+      "timestamp": "2023-03-08T15:06:35Z",
+      "author_identity": {
+        "entity_type": "identity",
+        "name": "EricChristensenEHawk",
+        "type": "github"
+      },
+      "repository_id": 500000104,
+      "created_at": "2023-03-08T15:07:32Z",
+      "message": "Deploy current product to np usea1 3 [sc-2507]"
+    }
+  ],
+  "files": [],
+  "position": 42147074048,
+  "blocked": false,
+  "project_id": null,
+  "deadline": null,
+  "stats": {
+    "num_related_documents": 0
+  },
+  "created_at": "2023-02-08T22:10:37Z",
+  "moved_at": "2023-03-08T15:08:09Z"
+}

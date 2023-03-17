@@ -1,204 +1,167 @@
+import axios from 'axios';
+import { MikroLog } from 'mikrolog';
+import { metadataConfig } from '../../config/metadata';
 import { convertDateToUnixTimestamp } from 'chrono-utils';
 
 import { EventDto } from '../../interfaces/Event';
-import { Parser, PayloadInput } from '../../interfaces/Parser';
-import { MikroLog } from 'mikrolog';
-import { metadataConfig } from '../../config/metadata';
+import { EventTypeInput, Parser, PayloadInput } from '../../interfaces/Parser';
+
 
 import {
-  MissingEventTimeError,
-  MissingEventError,
   MissingIdError,
-  MissingShortcutFieldsError
+  MissingShortcutFieldsError,
 } from '../errors/errors';
 
 /**
  * @description Parser adapted for Shortcut.
  */
 export class ShortcutParser implements Parser {
+
+  storyData: Record<string, any> = {};
+  shortcutIncidentLabelId: number;
+  shortcutToken: string;
+  logger: MikroLog;
+
+  constructor() {
+    const parseIntValue = (value : any, defaultValue : number) : number => {
+        const parsed = parseInt(value);
+        if (isNaN(parsed)) { return defaultValue; }
+        return parsed;
+    }
+
+    /* istanbul ignore next */
+    this.shortcutToken = process.env.SHORTCUT_TOKEN ?? "11111111-1111-1111-1111-111111111111";
+    this.shortcutIncidentLabelId = parseIntValue(process.env.SHORTCUT_INCIDENT_LABEL_ID, 2805);
+
+    this.logger = MikroLog.start({ metadataConfig: metadataConfig });
+  }
+  
+  private async getStoryData(body: Record<string, any>) : Promise<Record<string, any>>
+  {
+    if(Object.keys(this.storyData).length > 0) return this.storyData;
+
+    const id : string = body?.['primary_id'];
+    if (!id) throw new MissingIdError('Missing ID in getStoryData()!');
+
+    this.logger.info("fetching story " + id);
+    return axios.get("https://api.app.shortcut.com/api/v3/stories/" + id, { headers: {"Shortcut-Token" : this.shortcutToken}})
+                        .then((rsp) => {
+                          this.storyData = rsp.data;
+                          return rsp.data;
+                        });
+  }
+
+  private hasIncidentLabel(webhookActions: Record<string, any>) : boolean {
+    return this.hasLabelId("adds", this.shortcutIncidentLabelId, webhookActions);
+  }
+
+  private hasLabelId(check:string, incidentLabelId: number, webhookActions: Record<string, any>) : boolean {
+    for (let index in Object.keys(webhookActions)) {
+      let action: Record<string, any> = Object.values(webhookActions)[index];
+
+      //Check labels when a story is created
+      if (action?.['label_ids']?.filter((label: number) => label == incidentLabelId ).length > 0) return true;
+
+      //Check labels when a story is changed
+      if (action?.['changes']?.['label_ids']?.[check]?.filter((label: number) => label == incidentLabelId ).length > 0) return true;
+    }
+
+    return false;
+  }
+
   /**
    * @description Shortcut only handles Incidents, so this simply returns a hard coded value for it.
    */
-  public getEventType(): string {
-    return 'incident';
+  public async getEventType(eventTypeInput: EventTypeInput): Promise<string> {
+    const webhookbody = eventTypeInput.body || {};
+    if(!webhookbody || Object.keys(webhookbody).length == 0) throw new MissingShortcutFieldsError();
+
+    if (this.hasIncidentLabel(webhookbody?.['actions'])) return "incident";
+    return "change"
   }
 
   /**
    * @description Get payload fields from the right places.
    */
-  public getPayload(payloadInput: PayloadInput): EventDto {
-    const logger = MikroLog.start({ metadataConfig: metadataConfig });
-    const body = payloadInput.body || {};
+  public async getPayload(payloadInput: PayloadInput): Promise<EventDto> {
+    const webhookbody = payloadInput.body || {};
+    if(!webhookbody || Object.keys(webhookbody).length == 0) throw new MissingShortcutFieldsError();
 
-    logger.info(body);
+    const body = await this.getStoryData(webhookbody);
+    if(!body || Object.keys(body).length == 0) throw new MissingShortcutFieldsError();
 
     const event = (() => {
-      const eventType = body?.['actions']?.[0]?.['action'];
-      if (eventType === 'created') return 'opened';
-/*
-      if (eventType === 'issue_generic') {
-        const resolved = body?.changelog.items.filter(
-          (item: any) => item.field === 'resolution' && item.toString === 'Done'
-        );
-        if (resolved.length > 0) return 'closed';
+      if(body?.['completed'] == true) return "closed";
+      if(body?.['archived'] == true) return "closed";
+
+      if (webhookbody?.['actions'].filter((action: Record<string, any>) => action?.['action'] == "create" ).length > 0) {
+        if (this.hasIncidentLabel(webhookbody?.['actions'])) return "labeled"
+        return "opened";
       }
-*/
-      if (eventType === 'updated') {
-//        if (body?.['changes']?.['status']?.['new'] === 'resolved') return 'closed';
-//        if (body?.['changelog']?.['items'][0]?.['toString'] === 'incident') return 'labeled';
-//        if (body?.['changelog']?.['items'][0]?.['toString'] !== 'incident') return 'unlabeled';
+
+      if (webhookbody?.['actions'].filter((action: Record<string, any>) => action?.['action'] == "update" ).length > 0) {
+        if (this.hasLabelId("adds", this.shortcutIncidentLabelId, webhookbody?.['actions'])) return "labeled"
+        if (this.hasLabelId("removes", this.shortcutIncidentLabelId, webhookbody?.['actions'])) return "unlabeled"
+        return "opened";
       }
-      if (eventType === 'deleted') return 'deleted';
-      return eventType;
+      
+      return "unknown";
     })();
-
-    if (!event) throw new MissingEventError();
-
+    
     switch (event) {
       case 'opened':
-        return this.handleOpenedLabeled(body, true);
       case 'labeled':
-        return this.handleOpenedLabeled(body);
+        return this.handleOpenedLabeled(webhookbody, body);
       case 'closed':
       case 'unlabeled':
-      case 'deleted':
-//        return this.handleClosedUnlabeled(body);
+        return this.handleClosedUnlabeled(webhookbody, body);
       default:
         return {
           eventTime: 'UNKNOWN',
           timeCreated: 'UNKNOWN',
+          timeResolved: 'UNKNOWN',
           id: 'UNKNOWN',
+          title: 'UNKNOWN',
           message: 'UNKNOWN'
         };
     }
   }
-/*
-https://ehawkinc.slack.com/apps/AKEEF9DTM-launchdarkly?tab=more_info
-https://slack.com/help/articles/360041352714-Create-more-advanced-workflows-using-webhooks
-{
-  "meanTimeToRecovery": "Example text",
-  "deploymentFrequency": "Example text",
-  "changeFailureRate": "Example text",
-  "leadTimeForChange": "Example text",
-  "chartUrl": "Example text"    https://quickchart.io/documentation/
-}
 
-
-  https://api.app.shortcut.com
-  export SHORTCUT_API_TOKEN="YOUR API TOKEN HERE"
-    Shortcut-Token
-    https://developer.shortcut.com/api/rest/v3#Get-Story
-
-  Get timeCreated 
-  action: deleted, api-call Shortcut API ['primary_id']
-  action: update, api-call Shortcut API ['primary_id']
-  action: create, ['changed_at']
-
-  curl -X GET \
-  -H "Content-Type: application/json" \
-  -H "Shortcut-Token: $SHORTCUT_API_TOKEN" \
-  -L "https://api.app.shortcut.com/api/v3/stories/{story-public-id}"
-
-  https://developer.shortcut.com/api/rest/v3#Responses-91306
-    started_at
-      started_at_override
-
-    "labels": [{
-        "app_url": "foo",
-        "archived": true,
-        "color": "#6515dd",
-        "created_at": "2016-12-31T12:30:00Z",
-        "description": "foo",
-        "entity_type": "foo",
-        "external_id": "foo",
-        "id": 123,
-        "name": "foo",
-        "updated_at": "2016-12-31T12:30:00Z"
-      }],
-      */
-  /**
-   * @description Utility to create an incident.
-   */
-  private handleOpenedLabeled(body: Record<string, any>, opened: boolean = false) {
-    const timeCreated = opened ? body?.['changed_at'] : body?.['changed_at']; // body?.['issue']?.['fields']?.['created'];
-
-    if (!timeCreated)
-      throw new MissingEventTimeError('Missing expected timestamp in handleOpenedLabeled()!');
-
-    const id = body?.['primary_id'];
-    if (!id) throw new MissingIdError('Missing ID in handleOpenedLabeled()!');
-
-    const title = body?.['actions'][0]?.['name'] || '';
-
+  private handleOpenedLabeled(webhook: Record<string, any>, body: Record<string, any>) {
     return {
-      eventTime: Date.now().toString(),
-      timeCreated: convertDateToUnixTimestamp(timeCreated),
-      timeResolved: '',
-      id: id.toString(),
-      title,
+      eventTime: webhook?.['changed_at'],
+      timeCreated: convertDateToUnixTimestamp(body?.['created_at']),
+      id: `${ body?.['id'] }`,
+      title: body?.['name'],
       message: JSON.stringify(body)
     };
   }
 
-//  /**
-//   * @description Utility to resolve an incident.
-//   */
-/*
-  private handleClosedUnlabeled(body: Record<string, any>) {
-    const timeCreated = body?.['changed_at']; // body?.['issue']?.['fields']?.['created'];
-    if (!timeCreated)
-      throw new MissingEventTimeError('Missing expected timestamp in handleClosedUnlabeled()!');
-
-    const timeResolved = body?.['changed_at'];
-    if (!timeResolved)
-      throw new MissingEventTimeError(
-        'Missing expected updated/resolved timestamp in handleClosedUnlabeled()!'
-      );
-
-    const id = body?.['primary_id'];
-    if (!id) throw new MissingIdError('Missing ID in handleClosedUnlabeled()!');
-
-    const title = body?.['actions'][0]?.['name'] || '';
-
+  private handleClosedUnlabeled(webhook: Record<string, any>, body: Record<string, any>) {
     return {
-      eventTime: Date.now().toString(),
-      timeCreated: convertDateToUnixTimestamp(timeCreated),
-      timeResolved: convertDateToUnixTimestamp(timeResolved),
-      id: id.toString(),
-      title,
+      eventTime: webhook?.['changed_at'],
+      timeCreated: convertDateToUnixTimestamp(body?.['created_at']),
+      timeResolved: this.handleTimeResolved(body),
+      id: `${ body?.['id'] }`,
+      title: body?.['name'],
       message: JSON.stringify(body)
     };
   }
-*/
+
+  private handleTimeResolved(body: Record<string, any>) {
+    return body?.['completed'] || body?.['archived']
+             ? convertDateToUnixTimestamp(body?.['completed_at_override']?.toString() || body?.['completed_at']?.toString()) 
+             : Date.now().toString();
+  }
+
+  
   /**
    * @description Get the repository name.
-   * @example `https://bitbucket.org/SOMEORG/SOMEREPO/src/master/`
-   * @example `https://bitbucket.org/SOMEORG/SOMEREPO/`
-   * @example `https://github.com/SOMEORG/SOMEREPO`
    */
-  public getRepoName(body: Record<string, any>): string {
+  public async getRepoName(body: Record<string, any>): Promise<string> {
    
-    const fields: Record<string, any> = body?.issue?.fields;
-    if (!fields) throw new MissingShortcutFieldsError();
- /*
-    const matchedCustomFieldKey: string =
-      Object.keys(fields).filter(
-        (key: string) =>
-          typeof fields[key] === 'string' &&
-          key.startsWith('customfield_') &&
-          (fields[key].startsWith('https://bitbucket.org/') ||
-            fields[key].startsWith('https://github.com/'))
-      )[0] || '';
-
-    if (!matchedCustomFieldKey) throw new MissingShortcutMatchedCustomFieldKeyError();
-
-    const repoName: string = fields[matchedCustomFieldKey]
-      .replace('https://bitbucket.org/', '')
-      .replace('https://github.com/', '')
-      .split('/src/')[0];
-  */
+    console.log("getRepoName", body)
     const repoName: string = "eHawk";
     return repoName;
   }
-  
 }

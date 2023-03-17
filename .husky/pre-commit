@@ -3,6 +3,6 @@
 
 npm run build
 npm run test
-npm run docs:arkit
-npm run docs:cfndia
-git add diagrams/
+#npm run docs:arkit
+#npm run docs:cfndia
+#git add diagrams/

@@ -26,6 +26,7 @@ export async function handler(
   });
 
   try {
+    logger.info("here in the get metrics place");
     const queryParams = getRequestDTO(event.queryStringParameters || {});
     const repo = createNewDynamoDbRepository();
     const metrics = await getMetrics(repo, queryParams);
