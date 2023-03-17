@@ -15,8 +15,10 @@ provider:
     serverSideEncryption: AES256
   stackTags:
     Usage: ${self:service}
+    Team: devops
   tags:
     Usage: ${self:service}
+    Team: devops
   apiGateway:
     minimumCompressionSize: 1024
 
