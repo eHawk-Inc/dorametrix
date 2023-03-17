@@ -60,5 +60,5 @@ jobs:
       - name: Package
         run: npm run build
 
-      - name: Deloy
-        run: npm run deloy
+      - name: Deploy
+        run: npm run deploy
