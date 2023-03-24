@@ -37,8 +37,9 @@ custom:
     accountNumber: 535706019673
     maxDateRange: 30
     tableName: dorametrix
-    shortcutToken: 64060923-33b7-457f-91ea-4db7893273fa
+    shortcutApiToken: 64060923-33b7-457f-91ea-4db7893273fa
     shortcutIncidentLabelId: 2805
+    shortcutRepoName: eHawk
   aws:
     databaseArn: arn:aws:dynamodb:${self:provider.region}:${self:custom.config.accountNumber}:table/${self:custom.config.tableName}
     apiGatewayCachingTtl:
@@ -83,8 +84,9 @@ functions:
       REGION: ${self:provider.region}
       TABLE_NAME: ${self:custom.config.tableName}
       MAX_DATE_RANGE: ${self:custom.config.maxDateRange}
-      SHORTCUT_TOKEN: ${self:custom.config.shortcutToken}
+      SHORTCUT_TOKEN: ${self:custom.config.shortcutApiToken}
       SHORTCUT_INCIDENT_LABEL_ID: ${self:custom.config.shortcutIncidentLabelId}
+      SHORTCUT_REPONAME: ${self:custom.config.shortcutRepoName}
   GetMetrics:
     handler: src/infrastructure/adapters/web/GetMetrics.handler
     description: Get DORA metrics
