@@ -110,7 +110,7 @@ export class ShortcutParser implements Parser {
     const storyId: string = webhook?.['primary_id'];
     if (!storyId) throw new MissingIdError('Missing ID in getStoryData()!');
 
-    logger.info('storyId-webhook', storyId);
+    this.logger.info('storyId-webhook: ' + storyId);
     //The webhook can contain multiple story payloads, we only care about stories that match the primary id
     const webhookActions: Record<string, any>[] = webhook?.['actions'].filter(
       (action: Record<string, any>) =>
@@ -155,7 +155,7 @@ export class ShortcutParser implements Parser {
       return 'unknown';
     })(webhookActions);
 
-    logger.info('event', storyId, event);
+    this.logger.info('event: ' + storyId + ", event: " + event);
 
     switch (event) {
       case 'opened':
@@ -178,7 +178,7 @@ export class ShortcutParser implements Parser {
 
   private async handleOpenedLabeled(webhook: Record<string, any>, storyId: string) {
     const body = await this.fetchStory(storyId);
-    console.log('handleOpenedLabeled');
+    this.logger.info('handleOpenedLabeled');
 
     return {
       eventTime: webhook?.['changed_at'],
@@ -191,7 +191,7 @@ export class ShortcutParser implements Parser {
 
   private async handleClosedUnlabeled(webhook: Record<string, any>, storyId: string) {
     const body = await this.fetchStory(storyId);
-    console.log('handleClosedUnlabeled');
+    this.logger.info('handleClosedUnlabeled');
 
     return {
       eventTime: webhook?.['changed_at'],
@@ -218,7 +218,7 @@ export class ShortcutParser implements Parser {
    * @description Get the repository name.
    */
   public async getRepoName(body: Record<string, any>): Promise<string> {
-    logger.info('getRepoName', body);
+    this.logger.info('getRepoName ' + body);
     return this.repoName;
   }
 }
