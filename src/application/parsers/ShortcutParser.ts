@@ -123,74 +123,37 @@ export class ShortcutParser implements Parser {
       console.log('actions', actions);
       if (actions.length == 0) return 'unknown';
 
-      if (
-        actions.filter((action: Record<string, any>) => action?.['action'] == 'delete').length > 0
-      )
-        return 'closed';
+      if (actions.filter((action) => action?.['action'] == 'delete').length > 0) return 'closed';
 
       // Check if webhook is a 'create' event
-      const isCreate =
-        actions.filter((action: Record<string, any>) => action?.['action'] == 'create').length > 0;
+      const isCreate = actions.filter((act) => act?.['action'] == 'create').length > 0;
 
       // Check if webhook is an 'update' event
-      const isUpdate =
-        actions.filter((action: Record<string, any>) => action?.['action'] == 'update').length > 0;
+      const isUpdate = actions.filter((act) => act?.['action'] == 'update').length > 0;
 
       if (isCreate || isUpdate) {
-        console.log(
-          'archived',
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['archived']?.['new'] === true
-          )
-        );
-        if (
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['archived']?.['new'] === true
-          ).length > 0
-        )
+        if (actions.filter((act) => act?.['changes']?.['archived']?.['new'] === true).length > 0)
           return 'closed';
 
-        if (
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['started']?.['new'] === false
-          ).length > 0
-        )
+        if (actions.filter((act) => act?.['changes']?.['started']?.['new'] === false).length > 0)
           return 'closed';
 
-        if (
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['completed']?.['new'] === true
-          ).length > 0
-        )
+        if (actions.filter((act) => act?.['changes']?.['completed']?.['new'] === true).length > 0)
           return 'closed';
 
         if (this.hasLabelId('adds', this.shortcutIncidentLabelId, actions)) return 'labeled';
 
         if (this.hasLabelId('removes', this.shortcutIncidentLabelId, actions)) return 'unlabeled';
 
-        if (
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['archived']?.['new'] === false
-          ).length > 0
-        )
+        if (actions.filter((act) => act?.['changes']?.['archived']?.['new'] === false).length > 0)
           return 'opened';
 
-        if (
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['started']?.['new'] === true
-          ).length > 0
-        )
+        if (actions.filter((act) => act?.['changes']?.['started']?.['new'] === true).length > 0)
           return 'opened';
 
-        if (
-          actions.filter(
-            (action: Record<string, any>) => action?.['changes']?.['completed']?.['new'] === false
-          ).length > 0
-        )
+        if (actions.filter((act) => act?.['changes']?.['completed']?.['new'] === false).length > 0)
           return 'opened';
       }
-
-      if (isCreate) return 'opened';
 
       return 'unknown';
     })(webhookActions);
