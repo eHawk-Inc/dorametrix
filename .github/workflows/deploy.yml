@@ -1,0 +1,67 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+permissions:
+  actions: read
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment: production
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-latest']
+        node-version: [18.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+          
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm run test
+    
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          role-session-name: dorametrixdeploymentsession
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Package
+        run: npm run build
+
+      - name: Deploy
+        run: npx sls package --param="apiKey=${{ secrets.API_KEY }}" \ 
+                  --param="awsAccountNumber=${{ vars.AWS_ACCOUNTNUMBER }}" \
+                  --param="shortcutApiToken=${{ secrets.SHORTCUT_API_TOKEN }}" \
+                  --param="shortcutIncidentLabelId=${{ vars.SHORTCUT_INCIDENT_LABEL_ID }}" \
+                  --param="shortcutRepoName=${{ vars.SHORTCUT_REPONAME }}" \
+                  --region ${{ vars.AWS_REGION }}
